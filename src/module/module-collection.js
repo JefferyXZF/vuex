@@ -7,6 +7,7 @@ export default class ModuleCollection {
     this.register([], rawRootModule, false)
   }
 
+  // 通过path来获取到对应的子模块
   get (path) {
     return path.reduce((module, key) => {
       return module.getChild(key)
@@ -33,13 +34,15 @@ export default class ModuleCollection {
     const newModule = new Module(rawModule, runtime)
     if (path.length === 0) {
       this.root = newModule
-    } else {
+    } else { // 处理子模块
+      // 通过path找到父模块
       const parent = this.get(path.slice(0, -1))
+      // 将父模块的子模块赋值为当前遍历的模块，key为path的最后一项
       parent.addChild(path[path.length - 1], newModule)
     }
 
     // register nested modules
-    if (rawModule.modules) {
+    if (rawModule.modules) { // 递归处理子模块
       forEachValue(rawModule.modules, (rawChildModule, key) => {
         this.register(path.concat(key), rawChildModule, runtime)
       })
@@ -80,6 +83,14 @@ export default class ModuleCollection {
   }
 }
 
+/**
+ * 1、更新目标模块
+ * 2、更新目标模块的子模块
+ * @param {*} path 
+ * @param {*} targetModule 
+ * @param {*} newModule 
+ * @returns 
+ */
 function update (path, targetModule, newModule) {
   if (__DEV__) {
     assertRawModule(path, newModule)

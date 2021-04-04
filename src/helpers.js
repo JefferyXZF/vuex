@@ -8,19 +8,24 @@ import { isObject } from './util'
  */
 export const mapState = normalizeNamespace((namespace, states) => {
   const res = {}
+  // states能是对象，数组
   if (__DEV__ && !isValidMap(states)) {
     console.error('[vuex] mapState: mapper parameter must be either an Array or an Object')
   }
+  // [{key:'name', val: 'name'}, {key:'age', val: 'age'}]
   normalizeMap(states).forEach(({ key, val }) => {
     res[key] = function mappedState () {
       let state = this.$store.state
       let getters = this.$store.getters
       if (namespace) {
+        // 如果传入了命名空间
         const module = getModuleByNamespace(this.$store, 'mapState', namespace)
         if (!module) {
           return
         }
+        // 当前命名空间模块的state
         state = module.context.state
+        // 当前命名空间模块的getters
         getters = module.context.getters
       }
       return typeof val === 'function'
@@ -167,12 +172,21 @@ function isValidMap (map) {
  */
 function normalizeNamespace (fn) {
   return (namespace, map) => {
+    // 命名空间是选传的，如果命名空间不是字符串，那么说明只传了一个参数，将变量往后移，并且命名空间为''
     if (typeof namespace !== 'string') {
       map = namespace
       namespace = ''
     } else if (namespace.charAt(namespace.length - 1) !== '/') {
+      // 传入的命名空间如果没有/，帮用户补全
       namespace += '/'
     }
+    // fn会通过命名空间以及map会返回一个对象，对象大概像这样：
+    // res = {
+    //   age() {
+    //     // 当前命名空间的state中的age
+    //     return state.age
+    //   }
+    // }
     return fn(namespace, map)
   }
 }
@@ -185,6 +199,7 @@ function normalizeNamespace (fn) {
  * @return {Object}
  */
 function getModuleByNamespace (store, helper, namespace) {
+  // 在安装模块的时候将命名空间与模块进行了映射，在这里可以通过命名空间获取到模块
   const module = store._modulesNamespaceMap[namespace]
   if (__DEV__ && !module) {
     console.error(`[vuex] module namespace not found in ${helper}(): ${namespace}`)

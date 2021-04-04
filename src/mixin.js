@@ -27,6 +27,8 @@ export default function (Vue) {
         ? options.store()
         : options.store
     } else if (options.parent && options.parent.$store) {
+      // 如果当前参数没有没有 store 对象，但是有 parent 对象，那就说明它依赖于其父组件
+      // 那么将它的父组件的 store 挂载在 this.$store 上
       this.$store = options.parent.$store
     }
   }
